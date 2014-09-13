@@ -17,6 +17,10 @@ It's a tiny little library that brings CDI-like events to Spring. The goals of t
    This is quite an important point if the event is handled asynchronously. For example, if you want to asynchronously
    archive an invoice every time an invoice has been created, you need to be sure that the transaction which has created
    the invoice has been committed before trying to load the invoice from the database to archive it.
+ - The listener should choose when to be notified, not the event producer or the event itself. Indeed, one observer
+   might want to be notified of an invoice creation inside the transaction, in order for example to throw an exception
+   if the invoice doesn't meet a condition, while other observers might only want to be notified after the trnsaction
+   has been committed. The observers knows better when it should run then the event producer.
 
 ## Example usage
 
