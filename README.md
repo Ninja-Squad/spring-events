@@ -22,8 +22,8 @@ It's a tiny little library that brings CDI-like events to Spring. The goals of t
    extending InvoiceLifeCycleEvent
  - to let the observer choose when to be notified, not the event producer or the event itself. Indeed, one observer
    might want to be notified of an invoice creation inside the transaction, in order for example to throw an exception
-   if the invoice doesn't meet a condition, while other observers might only want to be notified after the trnsaction
-   has been committed. The observers knows better when it should run then the event producer.
+   if the invoice doesn't meet a condition, while other observers might only want to be notified after the transaction
+   has been committed. The observers knows better when it should run than the event producer.
 
 ## Example usage
 
