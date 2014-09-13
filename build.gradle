@@ -1,0 +1,27 @@
+apply plugin: 'java'
+
+group = 'com.ninja-squad'
+version = '0.1'
+
+sourceCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+}
+
+def springVersion = '4.1.0.RELEASE'
+
+dependencies {
+    compile "org.springframework:spring-tx:${springVersion}"
+    compile "org.springframework:spring-aop:${springVersion}"
+    compile 'com.google.guava:guava:18.0'
+    compile "org.springframework:spring-context:${springVersion}"
+
+    testCompile "junit:junit:4.11"
+    testCompile "org.easytesting:fest-assert-core:2.0M10"
+    testCompile "org.springframework:spring-test:${springVersion}"
+}
+
+task wrapper(type: Wrapper){
+    gradleVersion = '1.12'
+}
