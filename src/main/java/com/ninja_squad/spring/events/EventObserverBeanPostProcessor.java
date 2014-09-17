@@ -43,7 +43,8 @@ public class EventObserverBeanPostProcessor implements BeanPostProcessor, BeanFa
 
     /**
      * Set containing the name of all the beans containing at least one method annotated with Observed. We can't keep a
-     * reference to the beans during the post-processing phase, because if
+     * reference to the beans during the post-processing phase, because the beans might be proxied by another post
+     * processor.
      */
     private Set<String> observerBeanNames = new HashSet<String>();
 
