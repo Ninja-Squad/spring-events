@@ -7,7 +7,7 @@ Build status on Travis CI
 
 ## Disclaimer
 
-This is in now way an official Spring project. I'd like it to become one though.
+This is in no way an official Spring project. I'd like it to become one though.
 
 ## What is spring-events?
 
