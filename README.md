@@ -4,14 +4,13 @@ Build status on Travis CI
 
 [![Build Status](https://secure.travis-ci.org/Ninja-Squad/spring-events.png)](http://travis-ci.org/Ninja-Squad/spring-events)
 
-
-## Disclaimer
-
-This is in no way an official Spring project. I'd like it to become one though.
-
 ## What is spring-events?
 
-It's a tiny little library that brings CDI-like transaction-bound events to Spring. The goals of this project are:
+Spring has support for application events, which allows loose coupling between components. But the application events
+are always fired immediately. There is no easy way to have the events fired after the transaction is committed.
+
+spring-events a tiny little library that brings CDI-like, transaction-bound events to Spring. The goals of this
+project are:
 
  - to be able to fire any kind of event in a Spring application. The events don't have to extend any specific class or
    to implement any specific interface.
@@ -29,6 +28,10 @@ It's a tiny little library that brings CDI-like transaction-bound events to Spri
    might want to be notified of an invoice creation inside the transaction, in order for example to throw an exception
    if the invoice doesn't meet a condition, while other observers might only want to be notified after the transaction
    has been committed. The observers knows better when it should run than the event producer.
+
+## Disclaimer
+
+This is in no way an official Spring project. I'd like it to become one though.
 
 ## Installation
 
@@ -52,6 +55,7 @@ spring-events requires Java 6 or later.
 
         @Configuration
         @EnableEvents
+        @EnableAsync
         public class AppConfig {
             ...
         }
@@ -60,19 +64,20 @@ spring-events requires Java 6 or later.
    events:
 
         @Autowired
-        private EventFirer eventFirer;
+        private EventPublisher eventPublisher;
 
         @Transactional
         public void createInvoice(...) {
             ...
-            eventFirer.fire(new InvoiceCreated(invoiceId);
+            eventPublisher.fire(new InvoiceCreated(invoiceId));
         }
 
 3. Annotate a singleton bean method to be notified of the event only when the transaction has been committed:
 
         @Component
         private class InvoiceArchiver {
-            @Observes(when = EventMoment.AFTER_COMMIT)
+
+            @Observes(when = EventPhase.AFTER_COMMIT)
             @Async
             public void archiveInvoice(InvoiceCreated event) {
                 ...

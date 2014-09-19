@@ -23,39 +23,26 @@
  */
 package com.ninja_squad.spring.events;
 
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 
 /**
- * Event firer which registers a transaction synchronization in order to call an observing method after the transaction
- * is rollbacked. If transaction synchronization is not active, this firer doesn't do anything.
+ * Event firer which calls an observing method immediately
  * @author JB Nizet
  */
-class AfterRollbackEventFirer implements EventFirer {
+class InProgressEventPublisher implements EventPublisher {
 
     private final Object bean;
     private final Method method;
 
-    public AfterRollbackEventFirer(Object bean, Method method) {
+    public InProgressEventPublisher(Object bean, Method method) {
         this.bean = bean;
         this.method = method;
     }
 
     @Override
-    public void fire(final Object event) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-                @Override
-                public void afterCompletion(int status) {
-                    if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
-                        ReflectionUtils.invokeMethod(method, bean, event);
-                    }
-                }
-            });
-        }
+    public void fire(Object event) {
+        ReflectionUtils.invokeMethod(method, bean, event);
     }
 }

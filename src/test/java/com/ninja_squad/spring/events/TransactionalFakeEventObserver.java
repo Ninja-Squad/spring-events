@@ -11,12 +11,12 @@ public class TransactionalFakeEventObserver {
 
     private List<String> result = new ArrayList<String>();
 
-    @Observes(when = EventMoment.AFTER_COMMIT)
+    @Observes(when = EventPhase.AFTER_COMMIT)
     public void afterCommit(FakeEvent event) {
         result.add("afterCommit");
     }
 
-    @Observes(when = EventMoment.AFTER_ROLLBACK)
+    @Observes(when = EventPhase.AFTER_ROLLBACK)
     public void afterRollback(FakeEvent event) {
         result.add("afterRollback");
     }

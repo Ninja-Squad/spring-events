@@ -27,7 +27,7 @@ package com.ninja_squad.spring.events;
  * The moment when an event-observing method is called.
  * @author JB Nizet
  */
-public enum EventMoment {
+public enum EventPhase {
     /**
      * Indicates that the method must be called when the event is fired.
      */

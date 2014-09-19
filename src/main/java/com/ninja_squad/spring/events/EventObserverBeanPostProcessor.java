@@ -45,14 +45,14 @@ import java.util.Set;
 /**
  * Bean post processor which collects all the bean methods annotated with {@link Observes} in order to call them
  * when an event of the appropriate type is fired. This bean should be injected into beans which want to fire
- * events using its EventFirer interface.<br>
+ * events using its EventPublisher interface.<br>
  * Note that once the singleton beans have been instantiated, newly created beans (for example request-scoped or
  * session-scoped beans) are ignored by this post processor. So <code>@Observes</code> should only be placed on methods
  * of singleton beans.
  * @author JB Nizet
  */
 public class EventObserverBeanPostProcessor
-        implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton, EventFirer {
+        implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton, EventPublisher {
 
     private static final ReflectionUtils.MethodFilter HAS_OBSERVES_ANNOTATION  = new ReflectionUtils.MethodFilter() {
         @Override
@@ -76,12 +76,12 @@ public class EventObserverBeanPostProcessor
      * Map containing, for each observed type of event collected by scanning the arguments of the @Observes annotated
      * methods, the associated firers.
      */
-    private Multimap<Class<?>, EventFirer> eventFirers = ArrayListMultimap.create();
+    private Multimap<Class<?>, EventPublisher> eventFirers = ArrayListMultimap.create();
 
     /**
      * Cache containing, for each concrete class of fired event, the set of firers to call.
      */
-    private LoadingCache<Class<?>, Set<EventFirer>> eventClassToFirersCache =
+    private LoadingCache<Class<?>, Set<EventPublisher>> eventClassToFirersCache =
         CacheBuilder.newBuilder().build(new EventClassToFirersCacheLoader());
 
     @Override
@@ -143,7 +143,7 @@ public class EventObserverBeanPostProcessor
 
         Class<?> eventType = method.getParameterTypes()[0];
 
-        EventFirer firer = createEventFirer(observes, bean, actualMethod);
+        EventPublisher firer = createEventFirer(observes, bean, actualMethod);
 
         eventFirers.put(eventType, firer);
     }
@@ -172,16 +172,16 @@ public class EventObserverBeanPostProcessor
         return method;
     }
 
-    private EventFirer createEventFirer(Observes observes, Object bean, Method actualMethod) {
-        EventMoment when = observes.when();
-        if (when == EventMoment.IN_PROGRESS) {
-            return new InProgressEventFirer(bean, actualMethod);
+    private EventPublisher createEventFirer(Observes observes, Object bean, Method actualMethod) {
+        EventPhase when = observes.when();
+        if (when == EventPhase.IN_PROGRESS) {
+            return new InProgressEventPublisher(bean, actualMethod);
         }
-        else if (when == EventMoment.AFTER_COMMIT) {
-            return new AfterCommitEventFirer(bean, actualMethod);
+        else if (when == EventPhase.AFTER_COMMIT) {
+            return new AfterCommitEventPublisher(bean, actualMethod);
         }
-        else if (when == EventMoment.AFTER_ROLLBACK) {
-            return new AfterRollbackEventFirer(bean, actualMethod);
+        else if (when == EventPhase.AFTER_ROLLBACK) {
+            return new AfterRollbackEventPublisher(bean, actualMethod);
         }
         else {
             throw new IllegalStateException("unhandled event moment: " + when);
@@ -195,19 +195,19 @@ public class EventObserverBeanPostProcessor
 
     @Override
     public void fire(Object event) {
-        for (EventFirer eventFirer : eventClassToFirersCache.getUnchecked(event.getClass())) {
-            eventFirer.fire(event);
+        for (EventPublisher eventPublisher : eventClassToFirersCache.getUnchecked(event.getClass())) {
+            eventPublisher.fire(event);
         }
     }
 
     /**
      * The cache loader of the cache of classes to event firers
      */
-    private class EventClassToFirersCacheLoader extends CacheLoader<Class<?>, Set<EventFirer>> {
+    private class EventClassToFirersCacheLoader extends CacheLoader<Class<?>, Set<EventPublisher>> {
         @Override
-        public Set<EventFirer> load(Class<?> key) {
+        public Set<EventPublisher> load(Class<?> key) {
             Set<Class<?>> allTypes = getAllTypes(key);
-            ImmutableSet.Builder<EventFirer> result = new ImmutableSet.Builder<EventFirer>();
+            ImmutableSet.Builder<EventPublisher> result = new ImmutableSet.Builder<EventPublisher>();
             for (Class<?> type : allTypes) {
                 result.addAll(eventFirers.get(type));
             }

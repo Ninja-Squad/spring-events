@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation that can be set on any singleton bean method with a single parameter, and which will be called when an
- * event that is an instance of the method parameter is fired using {@link EventFirer#fire(Object)}.
+ * event that is an instance of the method parameter is fired using {@link EventPublisher#fire(Object)}.
  * Such a method typically returns void, but is not forced to. If it doesn't return void and is called by firing an
  * event, the returned value is ignored.<br>
  * The annotated method can be annotated with <code>@Async</code> as any other method, in which case firing the event
@@ -47,5 +47,5 @@ public @interface Observes {
     /**
      * Tells when the annotated method should be called. By default, it's called when the event is fired
      */
-    EventMoment when() default EventMoment.IN_PROGRESS;
+    EventPhase when() default EventPhase.IN_PROGRESS;
 }

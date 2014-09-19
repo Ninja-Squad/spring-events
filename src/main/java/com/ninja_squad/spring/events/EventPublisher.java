@@ -23,36 +23,17 @@
  */
 package com.ninja_squad.spring.events;
 
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.util.ReflectionUtils;
-
-import java.lang.reflect.Method;
-
 /**
- * Event firer which registers an transaction synchronization in order to call an observing method afer the transaction
- * is committed. If transaction synchronization is not active, this firer dosn't do anything.
+ * Allows firing an event that will be received by event observing methods, i.e. methods annotated with
+ * {@link Observes}. Note that a bean of type {@link EventObserverBeanPostProcessor}, which implements this interface,
+ * must be added to the application context for this mechanism to work. This is best done by using the
+ * {@link EnableEvents} annotation.
  * @author JB Nizet
  */
-class AfterCommitEventFirer implements EventFirer {
+public interface EventPublisher {
 
-    private final Object bean;
-    private final Method method;
-
-    public AfterCommitEventFirer(Object bean, Method method) {
-        this.bean = bean;
-        this.method = method;
-    }
-
-    @Override
-    public void fire(final Object event) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-                @Override
-                public void afterCommit() {
-                    ReflectionUtils.invokeMethod(method, bean, event);
-                }
-            });
-        }
-    }
+    /**
+     * Fires the given event.
+     */
+    void fire(Object event);
 }

@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class FakeEventProducer {
 
     @Autowired
-    private EventFirer eventFirer;
+    private EventPublisher eventPublisher;
 
     public void produce() {
-        eventFirer.fire(new FakeEvent());
+        eventPublisher.fire(new FakeEvent());
     }
 }
