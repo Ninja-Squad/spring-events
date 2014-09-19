@@ -21,21 +21,3 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.ninja_squad.spring.events;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-/**
- * Configuration enabling the needed bean post-processing to support events. This configuration is imported
- * by the {@link EnableEvents} annotation.
- * @author JB Nizet
- */
-@Configuration
-public class EventConfiguration {
-
-    @Bean
-    public EventObserverBeanPostProcessor eventFirer() {
-        return new EventObserverBeanPostProcessor();
-    }
-}

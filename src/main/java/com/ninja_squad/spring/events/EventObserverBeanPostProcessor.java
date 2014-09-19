@@ -1,3 +1,26 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2014, Ninja Squad
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package com.ninja_squad.spring.events;
 
 import com.google.common.cache.CacheBuilder;
@@ -28,7 +51,8 @@ import java.util.Set;
  * of singleton beans.
  * @author JB Nizet
  */
-public class EventObserverBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton, EventFirer {
+public class EventObserverBeanPostProcessor
+        implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton, EventFirer {
 
     private static final ReflectionUtils.MethodFilter HAS_OBSERVES_ANNOTATION  = new ReflectionUtils.MethodFilter() {
         @Override
@@ -39,7 +63,7 @@ public class EventObserverBeanPostProcessor implements BeanPostProcessor, BeanFa
 
     private BeanFactory beanFactory;
 
-    private boolean configFrozen = false;
+    private boolean configFrozen;
 
     /**
      * Set containing the name of all the beans containing at least one method annotated with Observed. We can't keep a
@@ -58,34 +82,7 @@ public class EventObserverBeanPostProcessor implements BeanPostProcessor, BeanFa
      * Cache containing, for each concrete class of fired event, the set of firers to call.
      */
     private LoadingCache<Class<?>, Set<EventFirer>> eventClassToFirersCache =
-        CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, Set<EventFirer>>() {
-            @Override
-            public Set<EventFirer> load(Class<?> key) throws Exception {
-                Set<Class<?>> allTypes = getAllTypes(key);
-                ImmutableSet.Builder<EventFirer> result = new ImmutableSet.Builder<EventFirer>();
-                for (Class<?> type : allTypes) {
-                    result.addAll(eventFirers.get(type));
-                }
-                return result.build();
-            }
-
-            private Set<Class<?>> getAllTypes(Class<?> type) {
-                Set<Class<?>> result = new HashSet<Class<?>>();
-                fillAllTypes(type, result);
-                return result;
-            }
-
-            private void fillAllTypes(Class<?> type, Set<Class<?>> result) {
-                result.add(type);
-                for (Class<?> i : type.getInterfaces()) {
-                    fillAllTypes(i, result);
-                }
-                Class<?> superclass = type.getSuperclass();
-                if (superclass != null) {
-                    fillAllTypes(superclass, result);
-                }
-            }
-        });
+        CacheBuilder.newBuilder().build(new EventClassToFirersCacheLoader());
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -203,4 +200,35 @@ public class EventObserverBeanPostProcessor implements BeanPostProcessor, BeanFa
         }
     }
 
+    /**
+     * The cache loader of the cache of classes to event firers
+     */
+    private class EventClassToFirersCacheLoader extends CacheLoader<Class<?>, Set<EventFirer>> {
+        @Override
+        public Set<EventFirer> load(Class<?> key) {
+            Set<Class<?>> allTypes = getAllTypes(key);
+            ImmutableSet.Builder<EventFirer> result = new ImmutableSet.Builder<EventFirer>();
+            for (Class<?> type : allTypes) {
+                result.addAll(eventFirers.get(type));
+            }
+            return result.build();
+        }
+
+        private Set<Class<?>> getAllTypes(Class<?> type) {
+            Set<Class<?>> result = new HashSet<Class<?>>();
+            fillAllTypes(type, result);
+            return result;
+        }
+
+        private void fillAllTypes(Class<?> type, Set<Class<?>> result) {
+            result.add(type);
+            for (Class<?> i : type.getInterfaces()) {
+                fillAllTypes(i, result);
+            }
+            Class<?> superclass = type.getSuperclass();
+            if (superclass != null) {
+                fillAllTypes(superclass, result);
+            }
+        }
+    }
 }

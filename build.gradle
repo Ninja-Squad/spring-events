@@ -1,7 +1,13 @@
 apply plugin: 'java'
+apply plugin : 'maven'
+apply plugin : 'checkstyle'
+apply plugin : 'pmd'
+apply plugin : 'findbugs'
+apply plugin : 'jacoco'
+apply plugin : 'signing'
 
 group = 'com.ninja-squad'
-version = '0.1'
+version = '1.0'
 
 sourceCompatibility = 1.6
 
@@ -20,6 +26,158 @@ dependencies {
     testCompile "junit:junit:4.11"
     testCompile "org.easytesting:fest-assert-core:2.0M10"
     testCompile "org.springframework:spring-test:${springVersion}"
+}
+
+task checkJavaVersion << {
+    if (!JavaVersion.current().isJava6()) {
+        String message = "ERROR: Java 1.6 required but " +
+                         JavaVersion.current() +
+                         " found. Change your JAVA_HOME environment variable.";
+        throw new IllegalStateException(message);
+    }
+}
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+check.dependsOn tasks.getByName("jacocoTestReport")
+
+checkstyle {
+    sourceSets = [sourceSets.main]
+}
+
+checkstyleMain << {
+    ant.xslt(in: reports.xml.destination,
+             style: new File(configFile.parent, 'checkstyle-noframes-sorted.xsl'),
+             out: new File(reports.xml.destination.parent, 'main.html'))
+}
+
+pmd {
+    sourceSets = [sourceSets.main]
+}
+
+pmdMain {
+    ignoreFailures = true
+    ruleSetFiles = files('config/pmd/ruleset.xml')
+}
+
+findbugs {
+    sourceSets = [sourceSets.main]
+    ignoreFailures = true
+}
+
+findbugsMain {
+    reports {
+        xml {
+            enabled = false
+        }
+        html {
+            enabled = true
+        }
+    }
+}
+
+javadoc {
+    options.noTimestamp true
+    options.linkSource true
+    options.stylesheetFile file('config/javadoc/stylesheet.css')
+}
+
+def sharedManifest = manifest {
+    attributes(['Implementation-Title': project.name,
+        'Implementation-Version': project.version,
+        'Implementation-Vendor': 'ninja-squad.com'])
+}
+
+jar {
+    manifest {
+        from sharedManifest
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    manifest {
+        from sharedManifest
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    manifest {
+        from sharedManifest
+    }
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+task checkSonatypeProperties << {
+    if (project.properties['sonatypeUsername'] == null || project.properties['sonatypePassword'] == null) {
+        throw new IllegalStateException("ERROR: you need to have sonatypeUsername and sonatypePassword properties" +
+                                        " defined in your HOME/.gradle/gradle.properties file to upload archives");
+    }
+}
+
+uploadArchives {
+    dependsOn checkSonatypeProperties
+    dependsOn checkJavaVersion
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
+                authentication(userName: project.properties['sonatypeUsername'], password: project.properties['sonatypePassword'])
+            }
+            snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
+                authentication(userName: project.properties['sonatypeUsername'], password: project.properties['sonatypePassword'])
+            }
+        }
+    }
+}
+
+[install.repositories.mavenInstaller, uploadArchives.repositories.mavenDeployer]*.pom*.whenConfigured {pom ->
+    // we don't care about test dependencies
+    pom.dependencies = pom.dependencies.findAll {it.scope != 'test'}
+    // all dependencies are compile time dependencies, and there is no need to say it
+    pom.dependencies*.scope = null
+
+    pom.project {
+        name = 'spring-events'
+        description = 'Adds modern, annotation-based, transaction-bound events to Spring'
+        url = 'https://github.com/Ninja-Squad/spring-events'
+        organization {
+            name = 'Ninja Squad'
+            url = 'http://ninja-squad.com'
+        }
+        licenses {
+            license {
+                name 'MIT License'
+                url 'https://github.com/Ninja-Squad/spring-events/blob/master/LICENSE.md'
+                distribution 'repo'
+            }
+        }
+        scm {
+            url = 'https://github.com/Ninja-Squad/spring-events'
+            connection = 'scm:git:git://github.com/Ninja-Squad/spring-events'
+            developerConnection = 'scm:git:git://github.com/Ninja-Squad/spring-events'
+        }
+        developers {
+            developer {
+                id = 'jnizet'
+                name = 'Jean-Baptiste Nizet'
+                email = 'jb@ninja-squad.com'
+            }
+        }
+    }
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
 }
 
 task wrapper(type: Wrapper){

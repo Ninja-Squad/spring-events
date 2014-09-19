@@ -6,7 +6,7 @@ This is in now way an official Spring project. I'd like it to become one though.
 
 ## What is spring-events?
 
-It's a tiny little library that brings CDI-like events to Spring. The goals of this project are
+It's a tiny little library that brings CDI-like transaction-bound events to Spring. The goals of this project are
 
  - to be able to fire any kind of event in a Spring application. The events don't have to extend any specific class or
    to implement any specific interface
@@ -24,6 +24,22 @@ It's a tiny little library that brings CDI-like events to Spring. The goals of t
    might want to be notified of an invoice creation inside the transaction, in order for example to throw an exception
    if the invoice doesn't meet a condition, while other observers might only want to be notified after the transaction
    has been committed. The observers knows better when it should run than the event producer.
+
+## Installation
+
+spring-events is available in Maven Central. Add the following dependency to your gradle build file:
+
+    compile 'com.ninja-squad:spring-events:1.0'
+
+Or, if using Maven,
+
+    <dependency>
+        <groupId>com.ninja-squad</groupId>
+        <artifactId>spring-events</artifactId>
+        <version>1.0</version>
+    </dependency>
+
+spring-events requires Java 6 or later.
 
 ## Example usage
 
