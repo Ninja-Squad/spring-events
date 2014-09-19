@@ -1,5 +1,10 @@
 # spring-events
 
+Build status on Travis CI
+
+[![Build Status](https://secure.travis-ci.org/Ninja-Squad/spring-events.png)](http://travis-ci.org/Ninja-Squad/spring-events)
+
+
 ## Disclaimer
 
 This is in now way an official Spring project. I'd like it to become one though.
