@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation used to enable the bean post processing necessary to support events. It adds a bean of type
- * {@link EventFirer} to the configuration, that can be autowired everywhere an event needs to be fired.
+ * {@link EventFirer} to the configuration, that can be autowired anywhere an event needs to be fired.
  * @author JB Nizet
  */
 @Target(ElementType.TYPE)

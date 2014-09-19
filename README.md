@@ -6,20 +6,20 @@ This is in now way an official Spring project. I'd like it to become one though.
 
 ## What is spring-events?
 
-It's a tiny little library that brings CDI-like transaction-bound events to Spring. The goals of this project are
+It's a tiny little library that brings CDI-like transaction-bound events to Spring. The goals of this project are:
 
  - to be able to fire any kind of event in a Spring application. The events don't have to extend any specific class or
-   to implement any specific interface
- - to be able to listen to events in an extremely simple way, by simply annotating a method
+   to implement any specific interface.
+ - to be able to listen to events in an extremely simple way, by simply annotating a method.
  - to be able to leverage the asynchronous method support of Spring to have events fired asynchronously and thus handled
-   by a separate thread
+   by a separate thread.
  - to be able to be notified as soon as the event is fired, or after the current transaction is committed or rollbacked.
    This is quite an important point if the event is handled asynchronously. For example, if you want to asynchronously
    archive an invoice every time an invoice has been created, you need to be sure that the transaction which has created
    the invoice has been committed before trying to load the invoice from the database to archive it.
  - to be able to be notified of several event types using a single method, using inheritance. For example, a method
    observing the base class InvoiceLifeCycleEvent would be notified of the events InvoiceCreated and InvoiceCanceled,
-   extending InvoiceLifeCycleEvent
+   extending InvoiceLifeCycleEvent.
  - to let the observer choose when to be notified, not the event producer or the event itself. Indeed, one observer
    might want to be notified of an invoice creation inside the transaction, in order for example to throw an exception
    if the invoice doesn't meet a condition, while other observers might only want to be notified after the transaction

@@ -31,8 +31,8 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Method;
 
 /**
- * Event firer which registers an transaction synchronization in order to call an observing method afer the transaction
- * is rollbacked. If transaction synchronization is not active, this firer dosn't do anything.
+ * Event firer which registers a transaction synchronization in order to call an observing method after the transaction
+ * is rollbacked. If transaction synchronization is not active, this firer doesn't do anything.
  * @author JB Nizet
  */
 class AfterRollbackEventFirer implements EventFirer {
