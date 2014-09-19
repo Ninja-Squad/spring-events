@@ -13,8 +13,9 @@ spring-events a tiny little library that brings CDI-like, transaction-bound even
 project are:
 
  - to be able to fire any kind of event in a Spring application. The events don't have to extend any specific class or
-   to implement any specific interface.
- - to be able to listen to events in an extremely simple way, by simply annotating a method.
+   to implement any specific interface (native Spring events have to extends `ApplicationEvent`).
+ - to be able to listen to events in an extremely simple way, by simply annotating a method (listening to native Spring
+   events requires implementing a generic interface, and doesn't allow observing several types of events).
  - to be able to leverage the asynchronous method support of Spring to have events fired asynchronously and thus handled
    by a separate thread.
  - to be able to be notified as soon as the event is fired, or after the current transaction is committed or rollbacked.
