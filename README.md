@@ -61,7 +61,7 @@ spring-events requires Java 6 or later.
             ...
         }
 
-2. Autowire the EventFirer bean added to the context by the `@EnableEvents` annotation, in order to be able to fire
+2. Autowire the EventPublisher bean added to the context by the `@EnableEvents` annotation, in order to be able to fire
    events:
 
         @Autowired
